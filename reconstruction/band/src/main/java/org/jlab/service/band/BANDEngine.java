@@ -28,6 +28,7 @@ public class BANDEngine extends ReconstructionEngine {
 
 	int Run = -1;
     private boolean cppReconstruction;
+    private boolean neutronSelection;
     private org.jlab.rec.band.constants.BandCalibration cppCalibration;
     private int cppRun = -1;
     private org.jlab.detector.calib.utils.ConstantsManager cppConstants;
@@ -54,6 +55,9 @@ public class BANDEngine extends ReconstructionEngine {
 	@Override
 		public boolean processDataEventUser(DataEvent event) {
 			if(cppReconstruction) {
+                event.removeBanks("BAND::rawhits", "BAND::hits", "BAND::laser");
+                // Reprocessing with selection disabled must not retain an old decision.
+                event.removeBanks("BAND::neutrons", "BAND::neutronHits");
                 if(!event.hasBank("RUN::config")) return false;
                 int run=event.getBank("RUN::config").getInt("run",0);
                 if(run<=0) return true;
@@ -66,7 +70,15 @@ public class BANDEngine extends ReconstructionEngine {
                     throw new IllegalArgumentException("BAND data/MC calibration mismatch for run "+run);
                 ArrayList<BandHitCandidate> pmts=HitReader.getCppCandidates(event);
                 ArrayList<BandHit> bars=org.jlab.rec.band.hit.BandReconstruction.find(pmts,cppCalibration);
+                org.jlab.rec.band.hit.BandNeutronSelector.Result neutrons=null;
+                if(neutronSelection) {
+                    if(!event.hasBank("REC::Event") || event.getBank("REC::Event").rows()!=1)
+                        throw new IllegalArgumentException("BAND neutron selection requires one REC::Event startTime row; run after event building");
+                    neutrons=org.jlab.rec.band.hit.BandNeutronSelector.select(bars,
+                            event.getBank("REC::Event").getFloat("startTime",0));
+                }
                 RecoBankWriter.appendBANDBanks(event,pmts,bars);
+                if(neutrons!=null) RecoBankWriter.appendNeutronBanks(event,bars,neutrons);
                 return true;
             }
             //System.out.println("**** NEW EVENT ****");
@@ -99,10 +111,17 @@ public class BANDEngine extends ReconstructionEngine {
             if(!mode.equals("legacy") && !mode.equals("cpp"))
                 throw new IllegalArgumentException("Unknown BAND reconstruction mode: "+mode);
             cppReconstruction=mode.equals("cpp");
+            String selection=getEngineConfigString("bandNeutronSelection","false");
+            if(!selection.equals("true") && !selection.equals("false"))
+                throw new IllegalArgumentException("bandNeutronSelection must be true or false");
+            neutronSelection=selection.equals("true");
+            if(neutronSelection && !cppReconstruction)
+                throw new IllegalArgumentException("BAND neutron selection requires cpp reconstruction");
             cppCalibration=null;cppRun=-1;
             if(cppReconstruction) {
                 resetCppConstants();
                 registerOutputBank("BAND::hits","BAND::rawhits","BAND::laser");
+                if(neutronSelection) registerOutputBank("BAND::neutrons","BAND::neutronHits");
                 return true;
             }
 			

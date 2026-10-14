@@ -70,5 +70,96 @@
        {"name":"indexRpmt",        "type":"S", "info":"index of rawhit from Right PMT, starts at zero"},
        {"name":"status",           "type":"S", "info":"status of the hit"}
     ]
-  }
+  },
+{
+  "name": "BAND::neutrons",
+  "group": 22100,
+  "item": 24,
+  "info": "Optional C++-equivalent neutron decision; provisional interface",
+  "entries": [
+    {
+      "name": "decision",
+      "type": "B",
+      "info": "0 rejected, 1 single survivor, 2 clustered pair"
+    },
+    {
+      "name": "source",
+      "type": "B",
+      "info": "Source bank: 0 BAND::hits, 1 BAND::laser"
+    },
+    {
+      "name": "nEligible",
+      "type": "S",
+      "info": "Energy-eligible main and veto hits"
+    },
+    {
+      "name": "nSurvivors",
+      "type": "S",
+      "info": "Unblocked eligible main hits before clustering"
+    },
+    {
+      "name": "lead",
+      "type": "S",
+      "info": "Zero-based source bank row; -1 when rejected"
+    },
+    {
+      "name": "leadId",
+      "type": "S",
+      "info": "100*sector+10*layer+component; -1 when rejected"
+    }
+  ]
+},
+{
+  "name": "BAND::neutronHits",
+  "group": 22100,
+  "item": 25,
+  "info": "Optional per-bar neutron diagnostics in source-bank row order",
+  "entries": [
+    {
+      "name": "hitIndex",
+      "type": "S",
+      "info": "Zero-based row in source bank identified by BAND::neutrons.source"
+    },
+    {
+      "name": "barId",
+      "type": "S",
+      "info": "100*sector+10*layer+component"
+    },
+    {
+      "name": "eligible",
+      "type": "B",
+      "info": "Passes inclusive energy threshold, including vetoes"
+    },
+    {
+      "name": "survivor",
+      "type": "B",
+      "info": "Eligible unblocked main hit"
+    },
+    {
+      "name": "blocker",
+      "type": "S",
+      "info": "First blocking source row in detector order; -1 if none"
+    },
+    {
+      "name": "energy",
+      "type": "D",
+      "info": "Unrounded calibrated energy used for eligibility (MeVee)"
+    },
+    {
+      "name": "tof",
+      "type": "D",
+      "info": "Unrounded TDC time minus REC::Event.startTime (ns)"
+    },
+    {
+      "name": "x",
+      "type": "D",
+      "info": "Unrounded global x used by selector (cm)"
+    },
+    {
+      "name": "y",
+      "type": "D",
+      "info": "Unrounded global y used by selector (cm)"
+    }
+  ]
+}
 ]

@@ -12,6 +12,36 @@ import org.jlab.rec.band.constants.CalibrationConstantsLoader;
 
 public class RecoBankWriter {
 
+    /** Optional diagnostic interface; existing hit rows and status codes are retained. */
+    public static void appendNeutronBanks(DataEvent event, ArrayList<BandHit> bars,
+            org.jlab.rec.band.hit.BandNeutronSelector.Result result) {
+        DataBank summary=event.createBank("BAND::neutrons",1);
+        DataBank details=bars.isEmpty() ? null:event.createBank("BAND::neutronHits",bars.size());
+        if(summary==null || (!bars.isEmpty() && details==null))
+            throw new IllegalStateException("Missing BAND neutron schemas in output dictionary");
+        byte source=(byte)(!bars.isEmpty() && bars.get(0).GetStatus()==1 ? 1:0);
+        summary.setByte("decision",0,(byte)result.decision());
+        summary.setByte("source",0,source);
+        summary.setShort("nEligible",0,(short)result.eligibleCount());
+        summary.setShort("nSurvivors",0,(short)result.survivorCount());
+        summary.setShort("lead",0,(short)result.leadRow());
+        summary.setShort("leadId",0,(short)result.leadId());
+        for(var h:result.hits()) {
+            int i=h.row();
+            details.setShort("hitIndex",i,(short)i);
+            details.setShort("barId",i,(short)h.barId());
+            details.setByte("eligible",i,(byte)(h.eligible()?1:0));
+            details.setByte("survivor",i,(byte)(h.survivor()?1:0));
+            details.setShort("blocker",i,(short)h.blocker());
+            details.setDouble("energy",i,h.energy());
+            details.setDouble("tof",i,h.tof());
+            details.setDouble("x",i,h.x());
+            details.setDouble("y",i,h.y());
+        }
+        event.appendBank(summary);
+        if(details!=null) event.appendBank(details);
+    }
+
 
 	// write useful information in the bank
 	public static DataBank fillBandHitBanks(DataEvent event, ArrayList<BandHit> hitlist) {
