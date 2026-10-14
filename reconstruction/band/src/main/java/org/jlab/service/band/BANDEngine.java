@@ -27,10 +27,49 @@ public class BANDEngine extends ReconstructionEngine {
 	}
 
 	int Run = -1;
+    private boolean cppReconstruction;
+    private org.jlab.rec.band.constants.BandCalibration cppCalibration;
+    private int cppRun = -1;
+    private org.jlab.detector.calib.utils.ConstantsManager cppConstants;
+    private String cppVariation="default", cppTimestamp="";
+    private void resetCppConstants() {
+        cppConstants=new org.jlab.detector.calib.utils.ConstantsManager(cppVariation);
+        cppConstants.setTimeStamp(cppTimestamp);
+        cppConstants.init(org.jlab.rec.band.constants.BandCalibration.TABLES);
+        cppCalibration=null;
+    }
+
+    @Override public org.jlab.detector.calib.utils.ConstantsManager getConstantsManager() {
+        return cppReconstruction ? cppConstants : super.getConstantsManager();
+    }
+    @Override public void setVariation(String variation) {
+        if(cppReconstruction) { cppVariation=variation; resetCppConstants(); }
+        else super.setVariation(variation);
+    }
+    @Override public void setTimeStamp(String timestamp) {
+        if(cppReconstruction) { cppTimestamp=timestamp; resetCppConstants(); }
+        else super.setTimeStamp(timestamp);
+    }
 
 	@Override
 		public boolean processDataEventUser(DataEvent event) {
-			//System.out.println("**** NEW EVENT ****");
+			if(cppReconstruction) {
+                if(!event.hasBank("RUN::config")) return false;
+                int run=event.getBank("RUN::config").getInt("run",0);
+                if(run<=0) return true;
+                if(cppCalibration==null || cppRun!=run) {
+                    cppCalibration=new org.jlab.rec.band.constants.BandCalibration(
+                        table->getConstantsManager().getConstants(run,table));
+                    cppRun=run;
+                }
+                if(event.hasBank("MC::Event")!=cppCalibration.simulation)
+                    throw new IllegalArgumentException("BAND data/MC calibration mismatch for run "+run);
+                ArrayList<BandHitCandidate> pmts=HitReader.getCppCandidates(event);
+                ArrayList<BandHit> bars=org.jlab.rec.band.hit.BandReconstruction.find(pmts,cppCalibration);
+                RecoBankWriter.appendBANDBanks(event,pmts,bars);
+                return true;
+            }
+            //System.out.println("**** NEW EVENT ****");
 			// update calibration constants based on run number if changed
 			setRunConditionsParameters(event);
 
@@ -56,6 +95,16 @@ public class BANDEngine extends ReconstructionEngine {
 
 	@Override
     public boolean init() {
+            String mode=getEngineConfigString("bandReconstruction","legacy");
+            if(!mode.equals("legacy") && !mode.equals("cpp"))
+                throw new IllegalArgumentException("Unknown BAND reconstruction mode: "+mode);
+            cppReconstruction=mode.equals("cpp");
+            cppCalibration=null;cppRun=-1;
+            if(cppReconstruction) {
+                resetCppConstants();
+                registerOutputBank("BAND::hits","BAND::rawhits","BAND::laser");
+                return true;
+            }
 			
 	    String[]  bandTables = new String[]{
 				"/calibration/band/time_jitter",

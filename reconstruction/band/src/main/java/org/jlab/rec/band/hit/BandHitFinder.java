@@ -360,8 +360,13 @@ public class BandHitFinder {
 
 	} // findHits function		
 
-	public ArrayList<BandHit> advancedHitFinder(ArrayList<BandHit> coincidences, boolean hasvetohit) 
-	{
+	public ArrayList<BandHit> advancedHitFinder(ArrayList<BandHit> coincidences, boolean hasvetohit)
+    {
+        return advancedHitFinder(coincidences,hasvetohit,CalibrationConstantsLoader.CUT_NHITS_BAND,CalibrationConstantsLoader.CUT_LASERHITS_BAND);
+    }
+
+    public ArrayList<BandHit> advancedHitFinder(ArrayList<BandHit> coincidences, boolean hasvetohit, int hitCut, int laserCut)
+    {
 
 		/** author:  Efrain Segarra, Florian Hauenstein
 		 * Currently this function sets status flags for EACH hit in an event. This depends on the length of the BandHit array and
@@ -375,8 +380,8 @@ public class BandHitFinder {
 		//If #hits > laserhitcutvalue (standard 100), status will be set to 1 (laser hits), other possibilities it will be 2
 		//If there will be a veto hit the status values are changed to 3 from 0 or 2 (exlude if laser hit
 		
-		if (coincidences.size() > CalibrationConstantsLoader.CUT_LASERHITS_BAND) { status_temp = 1; } //laser hits
-		else if (coincidences.size() < CalibrationConstantsLoader.CUT_NHITS_BAND) { status_temp = 0; } //coincidences.size > 0 is already checked before advanceHitFinder is called
+		if (coincidences.size() > laserCut) { status_temp = 1; } //laser hits
+		else if (coincidences.size() < hitCut) { status_temp = 0; } //coincidences.size > 0 is already checked before advanceHitFinder is called
 		else { status_temp = 2; } //cosmics or other data, no veto hit
 		
 		//if hasvetohit flag is true and it is not a laser hit set status to 3 for all hits

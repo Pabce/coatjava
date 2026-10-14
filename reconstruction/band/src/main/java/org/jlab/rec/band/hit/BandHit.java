@@ -20,6 +20,9 @@ public class BandHit extends ArrayList<BandHitCandidate> {
 	private double _difftimeTdc, _difftimeFadc;
 
 	private double _adcLcorr, _adcRcorr;
+    private Double _energy = null;
+    public Double GetEnergy() { return _energy; }
+    public void SetEnergy(double energy) { _energy = energy; }
 	private double _tFadcLcorr, _tFadcRcorr;
 	private double _tTdcLcorr, _tTdcRcorr;
 
