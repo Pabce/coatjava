@@ -149,6 +149,55 @@ public class HitReader {
 		return  candidates;  
 	}	
 
+    /** C++ reference policy: retain exactly one accepted ADC and one TDC per PMT.
+     * Counts are taken after ADC cuts, before pairing. Raw row indices are retained.
+     * Tagged overlay orders are not nominal C++ input and are rejected explicitly.
+     */
+    public static ArrayList<BandHitCandidate> getCppCandidates(DataEvent event) {
+        ArrayList<BandHitCandidate> result = new ArrayList<>();
+        if (!event.hasBank("BAND::adc") || !event.hasBank("BAND::tdc")) return result;
+        boolean mc = event.hasBank("MC::Event");
+        DataBank adc = event.getBank("BAND::adc"), tdc = event.getBank("BAND::tdc");
+        Map<Integer,ArrayList<Integer>> aa = new java.util.TreeMap<>(), tt = new java.util.TreeMap<>();
+        for (int i=0; i<adc.rows(); i++) {
+            int s=adc.getByte("sector",i), l=adc.getByte("layer",i), c=adc.getShort("component",i), o=adc.getByte("order",i);
+            if (!physicalChannel(s,l,c) || o<0 || o>1 || (mc && l==6 && o==1)) continue;
+            int a=adc.getInt("ADC",i), rawAmp=adc.getInt("amplitude",i), amp=rawAmp-adc.getShort("ped",i);
+            float time=adc.getFloat("time",i);
+            if (a==0 || time==0 || !Float.isFinite(time)) continue;
+            if (mc ? a/1E4<0.5 : rawAmp>=4095 || amp<250) continue;
+            aa.computeIfAbsent(s*1000+l*100+c*10+o,k->new ArrayList<>()).add(i);
+        }
+        for (int i=0; i<tdc.rows(); i++) {
+            int s=tdc.getByte("sector",i), l=tdc.getByte("layer",i), c=tdc.getShort("component",i), o=tdc.getByte("order",i)-2;
+            if (!physicalChannel(s,l,c) || o<0 || o>1) continue;
+            int key=s*1000+l*100+c*10+o;
+            if (aa.containsKey(key)) tt.computeIfAbsent(key,k->new ArrayList<>()).add(i);
+        }
+        double phase=0;
+        if (!mc && event.hasBank("RUN::config")) {
+            long stamp=event.getBank("RUN::config").getLong("timestamp",0);
+            if (stamp!=-1) phase=4.0*((stamp+3)%6);
+        }
+        for (Map.Entry<Integer,ArrayList<Integer>> entry:aa.entrySet()) {
+            ArrayList<Integer> times=tt.get(entry.getKey());
+            if (entry.getValue().size()!=1 || times==null || times.size()!=1) continue;
+            int a=entry.getValue().get(0), t=times.get(0), raw=tdc.getInt("TDC",t);
+            // C++ integer compound assignment truncates MC channels before ns conversion.
+            if (mc) raw=(int)(raw/1E4);
+            result.add(new BandHitCandidate(adc.getByte("sector",a),adc.getByte("layer",a),adc.getShort("component",a),
+                adc.getByte("order",a),adc.getInt("ADC",a),adc.getInt("amplitude",a)-adc.getShort("ped",a),
+                raw*0.02345,adc.getFloat("time",a),phase,a,t));
+        }
+        return result;
+    }
+
+    public static boolean physicalChannel(int sector, int layer, int component) {
+        if (sector<1 || sector>5 || layer<1 || layer>6) return false;
+        int[] count=layer==5 ? new int[]{3,7,5,5,0} : new int[]{3,7,6,6,2};
+        return component>=1 && component<=count[sector-1];
+    }
+
 	private static double getTriggerPhase( DataEvent ev) {
 		double tPh = 0.;
 		if(ev.hasBank("RUN::config")) {
