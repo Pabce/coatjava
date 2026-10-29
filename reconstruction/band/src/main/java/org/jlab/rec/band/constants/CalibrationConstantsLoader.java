@@ -1,5 +1,7 @@
 package org.jlab.rec.band.constants;
 
+import static org.jlab.rec.band.util.BandIdentifiers.barId;
+
 import org.jlab.detector.calib.utils.ConstantsManager;
 import org.jlab.detector.calib.utils.DatabaseConstantProvider;
 import org.jlab.utils.groups.IndexedTable;
@@ -89,12 +91,12 @@ public class CalibrationConstantsLoader {
 			double parB = energyconvert.getDoubleValue("par_b", sector, layer, component); 
 			double parC = energyconvert.getDoubleValue("par_c", sector, layer, component); 
 			// Put TW in map
-			int key 	= sector*100+layer*10+component;
+			int key 	= barId(sector, layer, component);
 			double convert_params[] = {parA,parB,parC};
 			ENERGY_CONVERT.put(Integer.valueOf(key), convert_params);
 		}
                 // Add laser channel
-                ENERGY_CONVERT.put(LASER_SECTOR*100+LASER_LAYER*10+LASER_SECTOR, LASER_CONV);
+                ENERGY_CONVERT.put(barId(LASER_SECTOR, LASER_LAYER, LASER_SECTOR), LASER_CONV);
 
 		////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 		// Global offsets for each bar for FADC and TDC
@@ -106,7 +108,7 @@ public class CalibrationConstantsLoader {
 			double tdc_off 	= globaloffsets.getDoubleValue("tdc_glob_off",  	sector, layer, component);
 			double fadc_off = globaloffsets.getDoubleValue("fadc_glob_off",  	sector, layer, component);
 			// Put in the maps
-			int key = sector*100+layer*10+component;
+			int key = barId(sector, layer, component);
 			TDC_GLOB_OFFSET.put(	Integer.valueOf(key),   Double.valueOf(tdc_off) );
 			FADC_GLOB_OFFSET.put(	Integer.valueOf(key),   Double.valueOf(fadc_off) );
 		}
@@ -123,7 +125,7 @@ public class CalibrationConstantsLoader {
 			double tdc_off 	= lroffsets.getDoubleValue("tdc_off",  sector, layer, component);
 			double fadc_off = lroffsets.getDoubleValue("fadc_off", sector, layer, component);
 			// Put in the maps
-			int key = sector*100+layer*10+component;
+			int key = barId(sector, layer, component);
 			TDC_T_OFFSET.put( 	Integer.valueOf(key), 	Double.valueOf(tdc_off ) );
 			FADC_T_OFFSET.put( 	Integer.valueOf(key), 	Double.valueOf(fadc_off) );		
 		}
@@ -143,7 +145,7 @@ public class CalibrationConstantsLoader {
 			double parB2 = timewalkL.getDoubleValue("par_b2", sector, layer, component); 
 			double parC2 = timewalkL.getDoubleValue("par_c2", sector, layer, component); 
 			// Put TW in map
-			int key 	= sector*100+layer*10+component;
+			int key 	= barId(sector, layer, component);
 			double time_walk_params[] = {parA1,parB1,parC1,parA2,parB2,parC2};
 			TIMEWALK_L.put(Integer.valueOf(key), time_walk_params);
 			/*
@@ -154,7 +156,7 @@ public class CalibrationConstantsLoader {
 			double errA = timewalkL.getDoubleValue("err_a", sector, layer, component); 
 			double errB = timewalkL.getDoubleValue("err_b", sector, layer, component); 
 			// Put in the maps
-			int key = sector*100+layer*10+component;
+			int key = barId(sector, layer, component);
 			double time_walk_params[] = {parA,parB,errA,errB};
 			TIMEWALK_L.put(Integer.valueOf(key), time_walk_params);
 			*/
@@ -175,7 +177,7 @@ public class CalibrationConstantsLoader {
 			double parB2 = timewalkR.getDoubleValue("par_b2", sector, layer, component); 
 			double parC2 = timewalkR.getDoubleValue("par_c2", sector, layer, component); 
 			// Put TW in map
-			int key 	= sector*100+layer*10+component;
+			int key 	= barId(sector, layer, component);
 			double time_walk_params[] = {parA1,parB1,parC1,parA2,parB2,parC2};
 			TIMEWALK_R.put(Integer.valueOf(key), time_walk_params);
 			/*
@@ -186,7 +188,7 @@ public class CalibrationConstantsLoader {
 			double errA = timewalkR.getDoubleValue("err_a", sector, layer, component); 
 			double errB = timewalkR.getDoubleValue("err_b", sector, layer, component);
 			// Put in the maps
-			int key = sector*100+layer*10+component;
+			int key = barId(sector, layer, component);
 			double time_walk_params[] = {parA,parB,errA,errB};
 			TIMEWALK_R.put(Integer.valueOf(key), time_walk_params);
 			*/
@@ -203,7 +205,7 @@ public class CalibrationConstantsLoader {
 			double veff_tdc		= effvel.getDoubleValue("veff_tdc",  sector, layer, component);
 			double veff_fadc	= effvel.getDoubleValue("veff_fadc", sector, layer, component);
 			// Put in the maps
-			int key = sector*100+layer*10+component;
+			int key = barId(sector, layer, component);
 			TDC_VEFF.put(	Integer.valueOf(key),		Double.valueOf(veff_tdc) );
 			FADC_VEFF.put(	Integer.valueOf(key), 		Double.valueOf(veff_fadc) );
 
@@ -228,7 +230,7 @@ public class CalibrationConstantsLoader {
 			double p2p_off_fadc	= paddleoffs_fadc.getDoubleValue("offset_fadc",  sector, layer, component);
 			double p2p_res_fadc	= paddleoffs_fadc.getDoubleValue("resolution_fadc",  sector, layer, component);
 			// Put in maps 
-			int key = sector*100+layer*10+component;
+			int key = barId(sector, layer, component);
 			FADC_MT_P2P_OFFSET.put(	Integer.valueOf(key),		Double.valueOf(p2p_off_fadc) );
 			FADC_MT_P2P_RES.put(	Integer.valueOf(key),		Double.valueOf(p2p_res_fadc) );
 
@@ -245,7 +247,7 @@ public class CalibrationConstantsLoader {
 			double l2l_off_fadc	= layeroffs_fadc.getDoubleValue("offset_fadc",  sector, layer, component);
 			double l2l_res_fadc	= layeroffs_fadc.getDoubleValue("resolution_fadc",  sector, layer, component);
 			// Put in maps
-			int key = sector*100+layer*10+component;
+			int key = barId(sector, layer, component);
 			FADC_MT_L2L_OFFSET.put(	Integer.valueOf(key),		Double.valueOf(l2l_off_fadc) );
 			FADC_MT_L2L_RES.put(	Integer.valueOf(key),		Double.valueOf(l2l_res_fadc) );
 		}
@@ -261,7 +263,7 @@ public class CalibrationConstantsLoader {
 			double p2p_off_tdc	= paddleoffs_tdc.getDoubleValue("offset_tdc",  sector, layer, component);
 			double p2p_res_tdc	= paddleoffs_tdc.getDoubleValue("resolution_tdc",  sector, layer, component);
 			// Put in maps 
-			int key = sector*100+layer*10+component;
+			int key = barId(sector, layer, component);
 			TDC_MT_P2P_OFFSET.put(		Integer.valueOf(key),		Double.valueOf(p2p_off_tdc) );
 			TDC_MT_P2P_RES.put(	 	Integer.valueOf(key),		Double.valueOf(p2p_res_tdc) );
 
@@ -278,7 +280,7 @@ public class CalibrationConstantsLoader {
 			double l2l_off_tdc	= layeroffs_tdc.getDoubleValue("offset_tdc",  sector, layer, component);
 			double l2l_res_tdc	= layeroffs_tdc.getDoubleValue("resolution_tdc",  sector, layer, component);
 			// Put in maps
-			int key = sector*100+layer*10+component;
+			int key = barId(sector, layer, component);
 			TDC_MT_L2L_OFFSET.put(	Integer.valueOf(key),		Double.valueOf(l2l_off_tdc) );
 			TDC_MT_L2L_RES.put(	Integer.valueOf(key),			Double.valueOf(l2l_res_tdc) );
 		}
@@ -294,7 +296,7 @@ public class CalibrationConstantsLoader {
 			double atten		= attenuation.getDoubleValue("atten_len",  sector, layer, component);
 			double atten_err	= attenuation.getDoubleValue("atten_len_err",  sector, layer, component);
 			// Put in map
-			int key = sector*100+layer*10+component;
+			int key = barId(sector, layer, component);
 			FADC_ATTEN_LENGTH.put(	Integer.valueOf(key),		Double.valueOf(atten) 	);
 		}
 

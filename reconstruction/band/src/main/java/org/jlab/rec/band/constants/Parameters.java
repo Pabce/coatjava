@@ -1,5 +1,7 @@
 package org.jlab.rec.band.constants;
 
+import static org.jlab.rec.band.util.BandIdentifiers.barId;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.lang.Integer;
@@ -71,7 +73,7 @@ public class Parameters {
 			for( int sector = 1 ; sector < sectNum + 1 ; sector++){
 				int nBars = compNumSecLay[layer-1][sector-1];
 				for( int bar = 1 ; bar < nBars + 1 ; bar++){
-					int key = sector*100+layer*10+bar;
+					int key = barId(sector, layer, bar);
 					double localY = 666666.;				
 					double localX = 666666.;
 					

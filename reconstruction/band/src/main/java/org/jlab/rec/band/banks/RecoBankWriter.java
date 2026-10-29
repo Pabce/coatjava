@@ -1,5 +1,7 @@
 package org.jlab.rec.band.banks;
 
+import static org.jlab.rec.band.util.BandIdentifiers.barId;
+
 import java.util.ArrayList;
 
 import org.jlab.io.base.DataBank;
@@ -73,7 +75,7 @@ public class RecoBankWriter {
 			bank.setByte("layer",i, (byte) hitlist.get(i).GetLayer());
 			bank.setShort("component",i, (short) hitlist.get(i).GetComponent());
 
-			int barKey = hitlist.get(i).GetSector()*100+hitlist.get(i).GetLayer()*10+hitlist.get(i).GetComponent();
+			int barKey = barId(hitlist.get(i).GetSector(), hitlist.get(i).GetLayer(), hitlist.get(i).GetComponent());
             double combo_adc;
             if(hitlist.get(i).GetEnergy()!=null) {
                 combo_adc=hitlist.get(i).GetEnergy();

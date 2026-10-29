@@ -1,5 +1,7 @@
 package org.jlab.rec.band.hit;
 
+import static org.jlab.rec.band.util.BandIdentifiers.barId;
+
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -31,13 +33,14 @@ public final class BandNeutronSelector {
         int n = bars.size();
         boolean[] eligible = new boolean[n], survivor = new boolean[n];
         double[] tof = new double[n];
-        int[] blocker = new int[n];
+        int[] blocker = new int[n], barIds = new int[n];
         ArrayList<Integer> ordered = new ArrayList<>();
         HashSet<Integer> identities = new HashSet<>();
         for (int i = 0; i < n; i++) {
             BandHit h = bars.get(i);
+            barIds[i] = barId(h.GetSector(), h.GetLayer(), h.GetComponent());
             if (!HitReader.physicalChannel(h.GetSector(), h.GetLayer(), h.GetComponent())
-                    || !identities.add(id(h))) throw new IllegalArgumentException("Invalid/duplicate BAND bar");
+                    || !identities.add(barIds[i])) throw new IllegalArgumentException("Invalid/duplicate BAND bar");
             if (h.GetEnergy() == null || !Double.isFinite(h.GetEnergy())
                     || !Double.isFinite(h.GetMeanTime_TDC()) || !Double.isFinite(h.GetX())
                     || !Double.isFinite(h.GetY())) throw new IllegalArgumentException("Invalid calibrated BAND hit");
@@ -48,7 +51,7 @@ public final class BandNeutronSelector {
             if (eligible[i]) ordered.add(i);
         }
         // The C++ caller iterates an ordered map, including for equal-time ties.
-        ordered.sort(Comparator.comparingInt(i -> id(bars.get(i))));
+        ordered.sort(Comparator.comparingInt(i -> barIds[i]));
         ArrayList<Integer> survivors = new ArrayList<>();
         for (int i : ordered) {
             BandHit h = bars.get(i);
@@ -82,14 +85,10 @@ public final class BandNeutronSelector {
         ArrayList<HitDecision> details = new ArrayList<>();
         for (int i = 0; i < n; i++) {
             BandHit h = bars.get(i);
-            details.add(new HitDecision(i, id(h), eligible[i], survivor[i], blocker[i],
+            details.add(new HitDecision(i, barIds[i], eligible[i], survivor[i], blocker[i],
                     h.GetEnergy(), tof[i], h.GetX(), h.GetY()));
         }
         return new Result(decision, ordered.size(), survivors.size(), lead,
-                lead < 0 ? -1 : id(bars.get(lead)), details);
-    }
-
-    private static int id(BandHit h) {
-        return h.GetSector() * 100 + h.GetLayer() * 10 + h.GetComponent();
+                lead < 0 ? -1 : barIds[lead], details);
     }
 }

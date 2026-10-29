@@ -1,5 +1,7 @@
 package org.jlab.rec.band.constants;
 
+import static org.jlab.rec.band.util.BandIdentifiers.barId;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
@@ -25,7 +27,7 @@ public final class BandCalibration {
         public final double tdcPaddle, fadcPaddle, tdcLayer, fadcLayer, tdcGlobal, fadcGlobal, adcPerMeV;
         private final double[] left, right;
         private Bar(IndexedTable b, IndexedTable l, IndexedTable r, int s, int layer, int c) {
-            int[] idx={s,layer,c}; id=s*100+layer*10+c;
+            int[] idx={s,layer,c}; id=barId(s, layer, c);
             status=integer(b,"status",idx);
             length=value(b,"length",idx); x=value(b,"x",idx); y=value(b,"y",idx); z=value(b,"z",idx);
             tdcOffset=value(b,"tdc_offset",idx); fadcOffset=value(b,"fadc_offset",idx);

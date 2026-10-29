@@ -69,7 +69,7 @@ public class BANDEngine extends ReconstructionEngine {
                 if(event.hasBank("MC::Event")!=cppCalibration.simulation)
                     throw new IllegalArgumentException("BAND data/MC calibration mismatch for run "+run);
                 ArrayList<BandHitCandidate> pmts=HitReader.getCppCandidates(event);
-                ArrayList<BandHit> bars=org.jlab.rec.band.hit.BandReconstruction.find(pmts,cppCalibration);
+                ArrayList<BandHit> bars=new BandHitFinder().findGoodHits(pmts,cppCalibration);
                 org.jlab.rec.band.hit.BandNeutronSelector.Result neutrons=null;
                 if(neutronSelection) {
                     if(!event.hasBank("REC::Event") || event.getBank("REC::Event").rows()!=1)

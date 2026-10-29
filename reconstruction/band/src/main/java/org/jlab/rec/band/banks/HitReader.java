@@ -1,5 +1,7 @@
 package org.jlab.rec.band.banks;
 
+import static org.jlab.rec.band.util.BandIdentifiers.pmtId;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -69,7 +71,7 @@ public class HitReader {
 	
 			if( adc <= 0 || ftdc <= 0 ) continue;
 
-			int key = s*1000 + l*100 + c*10 + o;
+			int key = pmtId(s, l, c, o);
 
 			// Check if this PMT has been stored before, and if it has, then
 			// replace it only if it has a larger ADC value. Otherwise, add to map
@@ -97,7 +99,7 @@ public class HitReader {
 			int c = bankTDC.getShort("component", j);
 			int o = bankTDC.trueOrder(j);
 
-			int key = s*1000 + l*100 + c*10 + (o-2);
+			int key = pmtId(s, l, c, o-2);
 
 			double tdc = ((double)bankTDC.getInt("TDC",j) * 0.02345 / TDCscale );
 
@@ -166,12 +168,12 @@ public class HitReader {
             float time=adc.getFloat("time",i);
             if (a==0 || time==0 || !Float.isFinite(time)) continue;
             if (mc ? a/1E4<0.5 : rawAmp>=4095 || amp<250) continue;
-            aa.computeIfAbsent(s*1000+l*100+c*10+o,k->new ArrayList<>()).add(i);
+            aa.computeIfAbsent(pmtId(s, l, c, o),k->new ArrayList<>()).add(i);
         }
         for (int i=0; i<tdc.rows(); i++) {
             int s=tdc.getByte("sector",i), l=tdc.getByte("layer",i), c=tdc.getShort("component",i), o=tdc.getByte("order",i)-2;
             if (!physicalChannel(s,l,c) || o<0 || o>1) continue;
-            int key=s*1000+l*100+c*10+o;
+            int key=pmtId(s, l, c, o);
             if (aa.containsKey(key)) tt.computeIfAbsent(key,k->new ArrayList<>()).add(i);
         }
         double phase=0;
